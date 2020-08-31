@@ -1,3 +1,4 @@
+
 <!doctype html>
 
 <html lang="en">
@@ -6,11 +7,36 @@
   <link rel="stylesheet" type="text/css" href="styley.css">
   <title>Coronavirus distance or not</title>
   <style>
-
+      body {background-color: black;}
+.button {
+  background-color: #4CAF50; /* Green */
+  border: none;
+  color: black;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 20px;
+  position: absolute;
+  top: 10%;
+  left: 40%;
+}
+.img {
+    position: absolute;
+    top: 30%;
+    left: 25%;
+}
 </style>
+
+<script>
+    function openWin() {
+      window.open("getcounty.html");
+    }
+    </script>
 
 </head>
 <body>
-  <button type="button" onclick="window.location.href='https://gabecisneros.github.io/Hackathon/'" target="_blank">Time to find out if you should distance</button>
+  <button class="button" type="button" href="getcounty.html" onclick="openWin()">Should I social distance ?</button>
+  <img class="img" src="https://www.safetyandhealthmagazine.com/ext/resources/images/news/concepts/social-distance.jpg?1584635268">
 </body>
 </html>
