@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Geolocation</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+    <script
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDrIlosSUgX3LrOiMDHos7ZOdtmDI8Abjk&callback=initMap&libraries=&v=weekly"
+      defer
+    ></script>
+    <style type="text/css">
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 100%;
+      }
+
+      /* Optional: Makes the sample page fill the window. */
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+    <script>
+      "use strict";
+
+      // Note: This example requires that you consent to location sharing when
+      // prompted by your browser. If you see the error "The Geolocation service
+      // failed.", it means you probably did not give permission for the browser to
+      // locate you.
+      let map, infoWindow;
+
+      function numberWithCommas(x) {
+        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      }
+      function initMap() {
+
+        var cMsg = "";
+        var cases = 0;
+        
+        map = new google.maps.Map(document.getElementById("map"), {
+          center: {
+            lat: 34.052235,
+            lng: -118.243683
+          },
+          zoom: 6
+        });
+        infoWindow = new google.maps.InfoWindow(); // Try HTML5 geolocation.
+
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            position => {
+              const pos = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude
+              };
+              console.log("we are here");
+              console.log(position);
+
+             var geocoder = new google.maps.Geocoder;
+             geocoder.geocode({'location': pos}, function(results, status) {
+            if (status === 'OK') {
+              if (results[0]) {
+                var filtered_array = results[0].address_components.filter(function(address_component){
+                  return address_component.types.includes("administrative_area_level_2");
+                }); 
+                var county = filtered_array.length ? filtered_array[0].long_name: "";
+                
+
+                filtered_array = results[0].address_components.filter(function(address_component){
+                  return address_component.types.includes("administrative_area_level_1");
+                }); 
+                var state = filtered_array.length ? filtered_array[0].long_name: "";
+                
+                const url = 'https://covid19-us-api.herokuapp.com/county';
+                fetch(url)
+                .then((resp) => resp.json())
+                    .then(function(data) {
+                      var i;
+                      county = county.replace("County", "").trim();
+                      //county = "Los Angeles";
+                      //state = "California"
+                      console.log(county + " " + state);
+                      for (i = 0; i < data.message.length; i++) {
+                         //console.log(data.message[i].county_name.toUpperCase() + " " + data.message[i].state_name.toUpperCase());
+                        if (data.message[i].county_name.toUpperCase() === county.toUpperCase() &&
+                            data.message[i].state_name.toUpperCase() === state.toUpperCase())
+                            
+                            
+                             {
+                             if(data.message[i].confirmed > 1000)  
+                                
+                             cMsg = 'County: '+county+'<br/>State: '+state +
+                                      "<br> Confirmed Cases: <b>" + numberWithCommas(data.message[i].confirmed) + "</b> " + 
+                                      "<br> Deaths: " + numberWithCommas(data.message[i].death) + "<br>" +
+                                       " </br> <b><font color='red'>You should be social distancing !!!</font></b><br> <img src='https://www.miamidade.gov/resources/images/initiatives/coronavirus/hurricane-face-mask-icon.jpg' width=50>";
+
+
+                                else{
+
+                                    cMsg = 'County: '+county+'<br/>State: '+state +
+                                    "<br> Confirmed Cases: <b>" + numberWithCommas(data.message[i].confirmed) + "</b> " + 
+                                    "<br> Deaths: " + numberWithCommas(data.message[i].death) + "<br>" +
+                                       "</br><b> <font color='green'>Great job, you don't need to social distance</font></b><br>" +
+                                       "<img src='https://s3.amazonaws.com/pix.iemoji.com/images/emoji/apple/ios-12/256/thumbs-up.png' width=35>";
+                                }
+
+                                      /*
+                                       {
+            "county_name": "El Dorado",
+            "state_name": "California",
+            "confirmed": 935,
+            "new": 0,
+            "death": 2,
+            "new_death": 0,
+            "fatality_rate": "0.2%",
+            "latitude": 38.68217,
+            "longitude": -120.84683,
+            "last_update": "2020-08-27 20:25 EDT"
+        },
+        */
+                            break;
+                        }
+                      }
+                      infoWindow.setContent(cMsg);
+                      infoWindow.setPosition(pos);
+                      infoWindow.open(map);
+                      map.setCenter(pos);
+               
+                    }
+                    );
+
+                
+              } else {
+                window.alert('No results found');
+              }
+            } else {
+              window.alert('Geocoder failed due to: ' + status);
+            }
+            });
+            
+            infoWindow.setContent("Gathering data...");
+
+              infoWindow.setPosition(pos);
+              infoWindow.open(map);
+              map.setCenter(pos);
+            },
+            () => {
+              handleLocationError(true, infoWindow, map.getCenter());
+            }
+          );
+        } else {
+          // Browser doesn't support Geolocation
+          handleLocationError(false, infoWindow, map.getCenter());
+        }
+      }
+
+      function handleLocationError(browserHasGeolocation, infoWindow, pos) {
+        infoWindow.setPosition(pos);
+        infoWindow.setContent(
+          browserHasGeolocation
+            ? "Error: The Geolocation service failed."
+            : "Error: Your browser doesn't support geolocation."
+        );
+        infoWindow.open(map);
+      }
+    </script>
+  </head>
+  <body>
+    <div id="map"></div>
+  </body>
+</html>
